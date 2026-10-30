@@ -1,0 +1,23 @@
+# Example client workflow - copy into .github/workflows/verify.yml
+name: Weurkico Verify
+on: [push, pull_request]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Weurkico verification gate
+        id: weurkico
+        uses: Weurkico/weurkico-action@v1
+        with:
+          api-key: ${{ secrets.WEURKICO_API_KEY }}
+          scope: production
+          fail-on: not-ready
+          timeout: 900
+
+      - name: Verdict
+        run: |
+          echo "verdict=${{ steps.weurkico.outputs.verdict }}"
+          echo "report=${{ steps.weurkico.outputs.verify_url }}"

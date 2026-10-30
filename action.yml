@@ -1,0 +1,88 @@
+name: 'Weurkico Verify'
+description: >-
+  Trigger a Weurkico verification for the checked-out repository, wait for
+  the verdict and gate the pipeline on it.
+author: Weurkico LLC
+branding:
+  icon: 'check-circle'
+  color: 'green'
+
+inputs:
+  api-key:
+    description: 'Weurkico API key (wk_live_...) - store as a repository secret.'
+    required: true
+  api-url:
+    description: 'Weurkico API base URL.'
+    required: false
+    default: 'https://www.weurkico.com'
+  project-id:
+    description: 'Existing Weurkico application public_id - skips auto-creation.'
+    required: false
+    default: ''
+  project-name:
+    description: 'Application name when auto-creating (default: repo name).'
+    required: false
+    default: ''
+  repo-url:
+    description: 'Repository URL to verify (default: the workflow repo).'
+    required: false
+    default: ''
+  repo-token:
+    description: 'GitHub PAT for private repositories (stored encrypted, never logged).'
+    required: false
+    default: ''
+  branch:
+    description: 'Branch to verify (default: current ref).'
+    required: false
+    default: ''
+  scope:
+    description: 'Verification scope: core | production | ai_data | quality.'
+    required: false
+    default: 'production'
+  fail-on:
+    description: >-
+      Gate policy: not-ready (default, blocks only NOT READY),
+      conditions (also blocks READY WITH CONDITIONS and needs_review),
+      strict (any non-PASS verdict fails), never (report only).
+    required: false
+    default: 'not-ready'
+  timeout:
+    description: 'Seconds to wait for a terminal status before ERROR.'
+    required: false
+    default: '900'
+  sarif:
+    description: 'Write findings to weurkico.sarif for code scanning upload.'
+    required: false
+    default: 'false'
+  poll-interval:
+    description: 'Seconds between status polls (backoff grows to 30s max).'
+    required: false
+    default: '10'
+
+outputs:
+  verification_id:
+    description: 'WK-<run>-<hash> public verification id.'
+  verdict:
+    description: 'ready_to_ship | ready_with_conditions | not_ready | error.'
+  verify_url:
+    description: 'Public URL proving the report is authentic.'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run Weurkico verification
+      shell: bash
+      env:
+        WEURKICO_API_KEY: ${{ inputs.api-key }}
+        WEURKICO_API_URL: ${{ inputs.api-url }}
+        INPUT_PROJECT_ID: ${{ inputs.project-id }}
+        INPUT_PROJECT_NAME: ${{ inputs.project-name }}
+        INPUT_REPO_URL: ${{ inputs.repo-url }}
+        INPUT_REPO_TOKEN: ${{ inputs.repo-token }}
+        INPUT_BRANCH: ${{ inputs.branch }}
+        INPUT_SCOPE: ${{ inputs.scope }}
+        INPUT_FAIL_ON: ${{ inputs.fail-on }}
+        INPUT_TIMEOUT: ${{ inputs.timeout }}
+        INPUT_POLL_INTERVAL: ${{ inputs.poll-interval }}
+        INPUT_SARIF: ${{ inputs.sarif }}
+      run: python3 "${{ github.action_path }}/weurkico_ci.py"
