@@ -1,0 +1,20 @@
+# Weurkico verification gate - paste into your project's .gitlab-ci.yml
+# Requires CI/CD variable WEURKICO_API_KEY (masked, protected).
+weurkico_verify:
+  image: python:3.12-slim
+  script:
+    - export WEURKICO_API_URL="${WEURKICO_API_URL:-https://www.weurkico.com}"
+    - export INPUT_REPO_URL="${CI_PROJECT_URL}.git"
+    - export INPUT_BRANCH="${CI_COMMIT_BRANCH}"
+    - export INPUT_PROJECT_NAME="${CI_PROJECT_NAME}"
+    - export INPUT_SCOPE="${WEURKICO_SCOPE:-production}"
+    - export INPUT_FAIL_ON="${WEURKICO_FAIL_ON:-not-ready}"
+    - export INPUT_TIMEOUT="${WEURKICO_TIMEOUT:-900}"
+    - export INPUT_SARIF="${WEURKICO_SARIF:-false}"
+    - curl -fsSL "https://raw.githubusercontent.com/Weurkico/weurkico-action/v1/weurkico_ci.py" -o weurkico_ci.py
+    - python3 weurkico_ci.py
+  artifacts:
+    when: always
+    paths: [weurkico.sarif]
+    expire_in: 1 week
+  allow_failure: false

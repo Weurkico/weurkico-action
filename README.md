@@ -53,3 +53,10 @@ Gate your pipeline on a Weurkico production-readiness verdict.
   already in progress on the application.
 - The run binds to the commit cloned at queue time (`commit_sha` in the
   report); the workflow SHA is echoed in the step summary.
+
+## GitLab CI
+
+GitLab has no action marketplace - copy [`gitlab-ci.yml`](gitlab-ci.yml)
+from this repo into your project's `.gitlab-ci.yml`. It downloads
+`weurkico_ci.py` and runs the same verification gate in a job. Set
+`WEURKICO_API_KEY` as a masked, protected CI/CD variable.
